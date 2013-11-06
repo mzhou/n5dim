@@ -37,6 +37,11 @@ extern void my_lm3630_lcd_backlight_set_level(int level);
 // Local
 static uintptr_t backup_lm3630_lcd_backlight_set_level[2];
 
+// Comment to debug
+#undef pr_emerg
+#define pr_emerg(fmt, ...) \
+         no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+
 static int __init n5dim_init(void)
 {
 	uintptr_t *orig_lm3630_lcd_backlight_set_level;

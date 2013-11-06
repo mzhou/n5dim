@@ -138,34 +138,6 @@ static void my_lm3630_set_brightness_reg(struct lm3630_device *dev, int level)
 	}
 }
 
-static void my_lm3630_set_main_current_level(struct i2c_client *client, int level)
-{
-	struct lm3630_device *dev = i2c_get_clientdata(client);
-
-	mutex_lock(ksym_backlight_mtx);
-	dev->bl_dev->props.brightness = level;
-	if (level != 0) {
-		if (level < dev->min_brightness)
-			level = dev->min_brightness;
-		else if (level > dev->max_brightness)
-			level = dev->max_brightness;
-
-		if (dev->blmap) {
-			if (level < dev->blmap_size)
-				my_lm3630_set_brightness_reg(dev, dev->blmap[level]);
-			else
-				pr_err("%s: invalid index %d:%d\n", __func__,
-						dev->blmap_size, level);
-		} else {
-			my_lm3630_set_brightness_reg(dev, level);
-		}
-	} else {
-		my_lm3630_write_reg(client, CONTROL_REG, BL_OFF);
-	}
-	mutex_unlock(ksym_backlight_mtx);
-	pr_debug("%s: level=%d\n", __func__, level);
-}
-
 static void my_lm3630_set_max_current_reg(struct lm3630_device *dev, int val)
 {
 	if (dev->bank_sel == LED_BANK_A) {
@@ -178,19 +150,56 @@ static void my_lm3630_set_max_current_reg(struct lm3630_device *dev, int val)
 	}
 }
 
+static void my_lm3630_set_main_current_level(struct i2c_client *client, int level)
+{
+	struct lm3630_device *dev = i2c_get_clientdata(client);
+
+	mutex_lock(ksym_backlight_mtx);
+	dev->bl_dev->props.brightness = level;
+	if (level == 0) {
+		my_lm3630_write_reg(client, CONTROL_REG, BL_OFF);
+	} else if (level == 1) {
+		my_lm3630_set_max_current_reg(dev, 0);
+		my_lm3630_set_brightness_reg(dev, 1);
+	} else {
+		if (level < dev->min_brightness) {
+			level = dev->min_brightness;
+		} else if (level > dev->max_brightness) {
+			level = dev->max_brightness;
+		}
+
+		my_lm3630_set_max_current_reg(dev, dev->max_current);
+
+		if (dev->blmap) {
+			if (level < dev->blmap_size) {
+				my_lm3630_set_brightness_reg(dev,
+						dev->blmap[level]);
+			} else {
+				pr_err("%s: invalid index %d:%d\n",
+						__func__,
+						dev->blmap_size,
+						level);
+			}
+		} else {
+			my_lm3630_set_brightness_reg(dev, level);
+		}
+	}
+	mutex_unlock(ksym_backlight_mtx);
+	pr_debug("%s: level=%d\n", __func__, level);
+}
+
 static void my_lm3630_hw_init(struct lm3630_device *dev)
 {
 	my_lm3630_hw_reset(dev);
 	my_lm3630_write_reg(dev->client, BOOST_CTL_REG, dev->boost_ctrl_reg);
 	my_lm3630_write_reg(dev->client, CONFIG_REG, dev->cfg_reg);
-	my_lm3630_set_max_current_reg(dev, dev->max_current);
 	my_lm3630_write_reg(dev->client, CONTROL_REG, dev->ctrl_reg);
 	mdelay(1);
 }
 
 static void my_lm3630_backlight_on(struct lm3630_device *dev, int level)
 {
-	if (dev->bl_dev->props.brightness == 0) {
+	if (dev->bl_dev->props.brightness == 0 && level != 0) {
 		my_lm3630_hw_init(dev);
 		pr_info("%s\n", __func__);
 	}
@@ -210,8 +219,6 @@ static void my_lm3630_backlight_off(struct lm3630_device *dev)
 
 void my_lm3630_lcd_backlight_set_level(int level)
 {
-	pr_emerg("%s\n", __func__);
-
 	if (!ksym_v_lm3630_dev) {
 		pr_warn("%s: No device\n", __func__);
 		return;
