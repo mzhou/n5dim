@@ -1,5 +1,5 @@
 obj-m := n5dim.o
-n5dim-objs := hook.o main.o my_lm3630_bl.o
+n5dim-objs := compat.o hook.o main.o my_lm3630_bl.o
 
 all:
 	make -C $(KERNEL_SOURCES) M=$(PWD) modules
