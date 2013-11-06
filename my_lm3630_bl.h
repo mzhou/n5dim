@@ -14,20 +14,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <linux/module.h>
+#ifdef MY_LM3630_BL_H_
+#define MY_LM3630_BL_H_
 
-static int __init n5dim_init(void)
-{
-	return 0;
-}
+void my_lm3630_lcd_backlight_set_level(int level);
 
-static void __exit n5dim_exit(void)
-{
-}
-
-module_init(n5dim_init);
-module_exit(n5dim_exit);
-
-MODULE_DESCRIPTION("Nexus 5 Screen Dimmer");
-MODULE_AUTHOR("Michael Zhou <mzhou@cse.unsw.edu.au>");
-MODULE_LICENSE("GPL");
+#endif // MY_LM3630_BL_H_
