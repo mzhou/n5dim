@@ -158,13 +158,11 @@ static void my_lm3630_set_main_current_level(struct i2c_client *client, int leve
 	dev->bl_dev->props.brightness = level;
 	if (level == 0) {
 		my_lm3630_write_reg(client, CONTROL_REG, BL_OFF);
-	} else if (level == 1) {
+	} else if (level < dev->min_brightness) {
 		my_lm3630_set_max_current_reg(dev, 0);
 		my_lm3630_set_brightness_reg(dev, 1);
 	} else {
-		if (level < dev->min_brightness) {
-			level = dev->min_brightness;
-		} else if (level > dev->max_brightness) {
+		if (level > dev->max_brightness) {
 			level = dev->max_brightness;
 		}
 
