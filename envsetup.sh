@@ -2,5 +2,5 @@
 export ARCH='arm'
 export CROSS_COMPILE='arm-eabi-'
 
-cat config >"$KERNEL_SOURCES"/.config
-make -C "$KERNEL_SOURCES" silentoldconfig scripts
+cat config >"$KERNEL_SOURCES"/arch/arm/configs/n5dim_defconfig
+make -C "$KERNEL_SOURCES" n5dim_defconfig prepare
