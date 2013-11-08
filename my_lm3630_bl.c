@@ -104,16 +104,6 @@ struct debug_reg {
 
 #include "lm3630_bl_ksyms.h"
 
-static void my_lm3630_hw_reset(struct lm3630_device *dev)
-{
-	if (gpio_is_valid(dev->en_gpio)) {
-		ksym_gpio_set_value_cansleep(dev->en_gpio, 1);
-		mdelay(1);
-	} else {
-		pr_err("%s: en_gpio is not valid !!\n", __func__);
-	}
-}
-
 static int my_lm3630_write_reg(struct i2c_client *client, u8 reg, u8 val)
 {
 	int ret;
@@ -150,11 +140,11 @@ static void my_lm3630_set_max_current_reg(struct lm3630_device *dev, int val)
 	}
 }
 
-static void my_lm3630_set_main_current_level(struct i2c_client *client, int level)
+void my_lm3630_set_main_current_level(struct i2c_client *client, int level)
 {
 	struct lm3630_device *dev = i2c_get_clientdata(client);
 
-	mutex_lock(ksym_backlight_mtx);
+	if (ksym_backlight_mtx) mutex_lock(ksym_backlight_mtx); // #YOLO
 	dev->bl_dev->props.brightness = level;
 	if (level == 0) {
 		my_lm3630_write_reg(client, CONTROL_REG, BL_OFF);
@@ -182,50 +172,6 @@ static void my_lm3630_set_main_current_level(struct i2c_client *client, int leve
 			my_lm3630_set_brightness_reg(dev, level);
 		}
 	}
-	mutex_unlock(ksym_backlight_mtx);
+	if (ksym_backlight_mtx) mutex_unlock(ksym_backlight_mtx); // #YOLO
 	pr_debug("%s: level=%d\n", __func__, level);
-}
-
-static void my_lm3630_hw_init(struct lm3630_device *dev)
-{
-	my_lm3630_hw_reset(dev);
-	my_lm3630_write_reg(dev->client, BOOST_CTL_REG, dev->boost_ctrl_reg);
-	my_lm3630_write_reg(dev->client, CONFIG_REG, dev->cfg_reg);
-	my_lm3630_write_reg(dev->client, CONTROL_REG, dev->ctrl_reg);
-	mdelay(1);
-}
-
-static void my_lm3630_backlight_on(struct lm3630_device *dev, int level)
-{
-	if (dev->bl_dev->props.brightness == 0 && level != 0) {
-		my_lm3630_hw_init(dev);
-		pr_info("%s\n", __func__);
-	}
-	my_lm3630_set_main_current_level(dev->client, level);
-}
-
-static void my_lm3630_backlight_off(struct lm3630_device *dev)
-{
-	if (dev->bl_dev->props.brightness == 0)
-		return;
-
-	my_lm3630_set_main_current_level(dev->client, 0);
-	ksym_gpio_set_value_cansleep(dev->en_gpio, 0);
-	udelay(1);
-	pr_info("%s\n", __func__);
-}
-
-void my_lm3630_lcd_backlight_set_level(int level)
-{
-	if (!ksym_v_lm3630_dev) {
-		pr_warn("%s: No device\n", __func__);
-		return;
-	}
-
-	pr_debug("%s: level=%d\n", __func__, level);
-
-	if (level)
-		my_lm3630_backlight_on(ksym_v_lm3630_dev, level);
-	else
-		my_lm3630_backlight_off(ksym_v_lm3630_dev);
 }

@@ -14,9 +14,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef MY_LM3630_BL_H_
+#ifndef MY_LM3630_BL_H_
 #define MY_LM3630_BL_H_
 
-void my_lm3630_lcd_backlight_set_level(int level);
+struct i2c_client;
+
+void my_lm3630_set_main_current_level(struct i2c_client *client, int level);
 
 #endif // MY_LM3630_BL_H_
