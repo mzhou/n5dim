@@ -104,6 +104,10 @@ int __dynamic_pr_debug(struct _ddebug *descriptor, const char *fmt, ...)
  */
 
 /* Dummy functions to avoid linker complaints */
+void __aeabi_unwind_cpp_pr0(void)
+{
+};
+
 void __aeabi_unwind_cpp_pr1(void)
 {
 };

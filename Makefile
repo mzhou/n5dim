@@ -7,7 +7,7 @@ modules:
 	make -C $(KERNEL_SOURCES) M=$(PWD) modules
 clean:
 	make -C $(KERNEL_SOURCES) M=$(PWD) clean
-	rm -vf vermagic_strip *.ko *.o
+	rm -vf *.ko *.o
 
 hook.o: hook.h mm_ksyms.h
 main.o: hook.h my_lm3630_bl.h
