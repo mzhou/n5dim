@@ -32,6 +32,8 @@ unsigned long ksym_mem_text_writeable_spinunlock;
 // Local
 static uintptr_t backup_lm3630_set_main_current_level[2];
 
+static void set_main_current_level_proxy(struct i2c_client *client, int level);
+
 // Comment to debug
 #undef pr_emerg
 #define pr_emerg(fmt, ...) \
@@ -65,7 +67,7 @@ static int __init n5dim_init(void)
 
 	if (hook_and_backup((void*) ksym_lm3630_set_main_current_level,
 			backup_lm3630_set_main_current_level,
-			my_lm3630_set_main_current_level)) return -EFAULT;
+			set_main_current_level_proxy)) return -EFAULT;
 
 	pr_emerg("Done!\n");
 
@@ -81,6 +83,16 @@ static void __exit n5dim_exit(void)
 
 module_init(n5dim_init);
 module_exit(n5dim_exit);
+
+static int old = 0;
+MODULE_PARM_DESC(old, "Only change minimum, not other levels");
+module_param(old, int, 0644);
+
+static void set_main_current_level_proxy(struct i2c_client *client, int level)
+{
+	if (old) my_lm3630_set_main_current_level(client, level);
+	else my_lm3630_new_set_main_current_level(client, level);
+}
 
 MODULE_DESCRIPTION("Nexus 5 Screen Dimmer");
 MODULE_AUTHOR("Michael Zhou <mzhou@cse.unsw.edu.au>");
