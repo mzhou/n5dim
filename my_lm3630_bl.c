@@ -182,6 +182,8 @@ void my_lm3630_new_set_main_current_level(struct i2c_client *client, int level)
 	int max_current;
 	int brightness;
 
+	pr_debug("n5dim: my_lm3630_new_set_main_current_level(%d)\n", level);
+
 	if (ksym_backlight_mtx) mutex_lock(ksym_backlight_mtx); // #YOLO
 	dev->bl_dev->props.brightness = level;
 	if (level == 0) {

@@ -34,42 +34,51 @@ static uintptr_t backup_lm3630_set_main_current_level[2];
 
 static void set_main_current_level_proxy(struct i2c_client *client, int level);
 
-// Comment to debug
-#undef pr_emerg
-#define pr_emerg(fmt, ...) \
-         no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-
 static int __init n5dim_init(void)
 {
-	pr_emerg("Hello!\n");
+	pr_debug("n5dim: Hello!\n");
 
 	ksym_gpio_set_value_cansleep = kallsyms_lookup_name(
 			"gpio_set_value_cansleep");
+	pr_debug("n5dim: ksym_gpio_set_value_cansleep == 0x%08lx\n",
+			ksym_gpio_set_value_cansleep);
 	if (!ksym_gpio_set_value_cansleep) return -EFAULT;
 
 	ksym_lm3630_set_main_current_level = kallsyms_lookup_name(
 			"lm3630_set_main_current_level");
+	pr_debug("n5dim: ksym_lm3630_set_main_current_level == 0x%08lx\n",
+			ksym_lm3630_set_main_current_level);
 	if (!ksym_lm3630_set_main_current_level) return -EFAULT;
 
 	ksym_mem_text_address_restore = kallsyms_lookup_name(
 			"mem_text_address_restore");
+	pr_debug("n5dim: ksym_mem_text_address_restore == 0x%08lx\n",
+			ksym_mem_text_address_restore);
 	ksym_mem_text_address_writeable = kallsyms_lookup_name(
 			"mem_text_address_writeable");
+	pr_debug("n5dim: ksym_mem_text_address_writeable == 0x%08lx\n",
+			ksym_mem_text_address_writeable);
 	ksym_mem_text_writeable_spinlock = kallsyms_lookup_name(
 			"mem_text_writeable_spinlock");
+	pr_debug("n5dim: ksym_mem_text_writeable_spinlock == 0x%08lx\n",
+			ksym_mem_text_writeable_spinlock);
 	ksym_mem_text_writeable_spinunlock = kallsyms_lookup_name(
 			"mem_text_writeable_spinunlock");
+	pr_debug("n5dim: ksym_mem_text_writeable_spinunlock == 0x%08lx\n",
+			ksym_mem_text_writeable_spinunlock);
 
 	ksym_backlight_mtx = kallsyms_lookup_name("backlight_mtx");
+	pr_debug("n5dim: ksym_backlight_mtx == 0x%08lx\n", ksym_backlight_mtx);
 	if (!ksym_backlight_mtx) {
-		pr_warn("kallsyms_lookup_name(\"backlight_mtx\") failed\n");
+		pr_warn("n5dim: kallsyms_lookup_name(\"backlight_mtx\")"
+				" failed\n");
 	}
 
 	if (hook_and_backup((void*) ksym_lm3630_set_main_current_level,
 			backup_lm3630_set_main_current_level,
 			set_main_current_level_proxy)) return -EFAULT;
 
-	pr_emerg("Done!\n");
+	pr_debug("n5dim: Done!\n");
 
 	return 0;
 }
