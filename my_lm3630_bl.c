@@ -208,3 +208,33 @@ void my_lm3630_new_set_main_current_level(struct i2c_client *client, int level)
 	if (ksym_backlight_mtx) mutex_unlock(ksym_backlight_mtx); // #YOLO
 	pr_debug("%s: level=%d\n", __func__, level);
 }
+
+void my_lm3630_orig_set_main_current_level(
+		struct i2c_client *client, int level)
+{
+	struct lm3630_device *dev = i2c_get_clientdata(client);
+
+	if (ksym_backlight_mtx) mutex_lock(ksym_backlight_mtx); // #YOLO
+	dev->bl_dev->props.brightness = level;
+	if (level != 0) {
+		if (level < dev->min_brightness)
+			level = dev->min_brightness;
+		else if (level > dev->max_brightness)
+			level = dev->max_brightness;
+
+		if (dev->blmap) {
+			if (level < dev->blmap_size)
+				my_lm3630_set_brightness_reg(dev,
+						dev->blmap[level]);
+			else
+				pr_err("%s: invalid index %d:%d\n", __func__,
+						dev->blmap_size, level);
+		} else {
+			my_lm3630_set_brightness_reg(dev, level);
+		}
+	} else {
+		my_lm3630_write_reg(client, CONTROL_REG, BL_OFF);
+	}
+	if (ksym_backlight_mtx) mutex_unlock(ksym_backlight_mtx); // #YOLO
+	pr_debug("%s: level=%d\n", __func__, level);
+}

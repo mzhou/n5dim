@@ -22,5 +22,7 @@ struct i2c_client;
 void my_lm3630_set_main_current_level(struct i2c_client *client, int level);
 void my_lm3630_new_set_main_current_level(
 		struct i2c_client *client, int level);
+void my_lm3630_orig_set_main_current_level(
+		struct i2c_client *client, int level);
 
 #endif // MY_LM3630_BL_H_

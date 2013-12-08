@@ -83,15 +83,11 @@ static int __init n5dim_init(void)
 	return 0;
 }
 
-static void __exit n5dim_exit(void)
-{
-	unhook_and_restore((void*) ksym_lm3630_set_main_current_level,
-			backup_lm3630_set_main_current_level);
-	pr_emerg("Bye!\n");
-}
-
 module_init(n5dim_init);
-module_exit(n5dim_exit);
+
+static int enable = 1;
+MODULE_PARM_DESC(enable, "Change any behaviour at all");
+module_param(enable, int, 0644);
 
 static int old = 0;
 MODULE_PARM_DESC(old, "Only change minimum, not other levels");
@@ -99,7 +95,8 @@ module_param(old, int, 0644);
 
 static void set_main_current_level_proxy(struct i2c_client *client, int level)
 {
-	if (old) my_lm3630_set_main_current_level(client, level);
+	if (!enable) my_lm3630_orig_set_main_current_level(client, level);
+	else if (old) my_lm3630_set_main_current_level(client, level);
 	else my_lm3630_new_set_main_current_level(client, level);
 }
 
