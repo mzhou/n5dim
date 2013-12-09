@@ -83,7 +83,15 @@ static int __init n5dim_init(void)
 	return 0;
 }
 
+static void __exit n5dim_exit(void)
+{
+        unhook_and_restore((void*) ksym_lm3630_set_main_current_level,
+                        backup_lm3630_set_main_current_level);
+        pr_info("n5dim: Bye!\n");
+}
+
 module_init(n5dim_init);
+module_exit(n5dim_exit);
 
 static bool enable = true;
 MODULE_PARM_DESC(enable, "Change any behaviour at all");
