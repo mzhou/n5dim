@@ -85,13 +85,13 @@ static int __init n5dim_init(void)
 
 module_init(n5dim_init);
 
-static int enable = 1;
+static bool enable = true;
 MODULE_PARM_DESC(enable, "Change any behaviour at all");
-module_param(enable, int, 0644);
+module_param(enable, bool, 0644);
 
-static int old = 0;
+static bool old = false;
 MODULE_PARM_DESC(old, "Only change minimum, not other levels");
-module_param(old, int, 0644);
+module_param(old, bool, 0644);
 
 static void set_main_current_level_proxy(struct i2c_client *client, int level)
 {
